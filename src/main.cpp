@@ -2,6 +2,7 @@
 #include <complex>
 #include <iostream>
 #include <x86intrin.h>
+#include <cmath>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -99,7 +100,7 @@ void SIMDcomputeMandelbrot(std::vector<sf::Uint8>& pixels) {
                 // (50, 100, 170)       - N % 2 == 1
                 float t = N_results[i] / MAX_ITER;
 
-                sf::Uint8 R = static_cast<sf::Uint8>(50 + 70 * (1 - t) * ((static_cast<int>(N_results[i]) + 1) / 2));
+                sf::Uint8 R = static_cast<sf::Uint8>(50 + 70 * (1 - std::sin(t)) * ((static_cast<int>(N_results[i]) + 1) / 2));
                 sf::Uint8 G = static_cast<sf::Uint8>(25 + 75 * parity);
                 sf::Uint8 B = static_cast<sf::Uint8>(170);
 
