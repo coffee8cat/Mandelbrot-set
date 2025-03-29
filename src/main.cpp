@@ -25,14 +25,14 @@ void computeMandelbrot(std::vector<sf::Uint8>& pixels) {
                 x = x2 - y2 + x0;
                 y = xy + xy + y0;
             }
-            // (20, 100, 170)       - set (N = MAX_ITER = 254, N % 2 == 0)
-            // (130, 60, 220)      - N % 2 == 0
-            // (170, 20, 100)       - N % 2 == 1
+            // (50,  25, 170)       - set (N = MAX_ITER = 254, N % 2 == 0)
+            // (120, 25, 170)       - N % 2 == 0
+            // (50, 100, 170)       - N % 2 == 1
             // Градиент бордово-синий
             float t = static_cast<float>(N) / MAX_ITER; // Нормализуем [0,1]
-            sf::Uint8 R = static_cast<sf::Uint8>(130 - 110 * t + 40  * (N % 2) * (1 - t));  // От 100 до 255 (бордовый)
-            sf::Uint8 G = static_cast<sf::Uint8>(60  + 40 * t  - 40  * (N % 2) * (1 - t));   // Почти отсутствует (темные оттенки)
-            sf::Uint8 B = static_cast<sf::Uint8>(220 - 50 * t  - 120 * (N % 2) * (1 - t));  // От 255 до 100 (синий → фиолетовый)
+            sf::Uint8 R = static_cast<sf::Uint8>(50 + 70 * (1 - t) * ((N+1) / 2));  // От 100 до 255 (бордовый)
+            sf::Uint8 G = static_cast<sf::Uint8>(25 + 75 * (N % 2));   // Почти отсутствует (темные оттенки)
+            sf::Uint8 B = static_cast<sf::Uint8>(170);  // От 255 до 100 (синий → фиолетовый)
 
             int index = (iy * WIDTH + ix) * 4;
             pixels[index]     = R;  // Красный
