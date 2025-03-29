@@ -13,7 +13,7 @@ all:
 compile:
 	export MESA_LOADER_DRIVER_OVERRIDE=llvmpipe
 	export LIBGL_ALWAYS_SOFTWARE=1
-	g++ $(SOURCES) -O3 -o $(BUILD_DIR)/$(EXECUTABLE) -lsfml-graphics -lsfml-window -lsfml-system
+	g++ $(SOURCES) -O3 -o $(BUILD_DIR)/$(EXECUTABLE) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
 
 run:
 	gdb $(BUILD_DIR)/$(EXECUTABLE)
