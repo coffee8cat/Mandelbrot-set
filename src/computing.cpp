@@ -1,11 +1,19 @@
 #include "computing.h"
 #include "params.h"
 
+inline float iy_to_y0(int iy) {
+    return (iy - HEIGHT / 2.0) * 3.0 / (HEIGHT * zoom) + offsetY;
+}
+
+inline float ix_to_x0(int ix) {
+    return (ix - WIDTH / 2.0) * 3.0 / (WIDTH * zoom) + offsetX;
+}
+
 void computeMandelbrot(std::vector<sf::Uint8>& pixels) {
     for (int iy = 0; iy < HEIGHT; iy++) {
         for (int ix = 0; ix < WIDTH; ix++) {
-            float x0 = (ix - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX;
-            float y0 = (iy - HEIGHT / 2.0f) * 3.0f / (HEIGHT * zoom) + offsetY;
+            float x0 = ix_to_x0(ix);
+            float y0 = iy_to_y0(iy);
             float x = x0, y = y0;
 
             size_t N = 0;
@@ -36,23 +44,11 @@ void computeMandelbrot(std::vector<sf::Uint8>& pixels) {
 
 void SIMD_m256s_computeMandelbrot(std::vector<sf::Uint8>& pixels) {
     for (int iy = 0; iy < HEIGHT; iy++) {
-        // Precompute y0 for the entire row (constant for all ix)
-        float y0_scalar = (iy - HEIGHT / 2.0f) * 3.0f / (HEIGHT * zoom) + offsetY;
-        __m256 y0 = _mm256_set1_ps(y0_scalar);
+        __m256 y0 = _mm256_set1_ps(iy_to_y0(iy));
 
         for (int ix = 0; ix < WIDTH; ix += 8) {
-            // Initialize x0 with 8 consecutive x-coordinates
-            // order is reversed because it fills the vector from high to low memory.
-            __m256 x0 = _mm256_set_ps(
-                (ix + 7 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 6 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 5 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 4 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 3 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 2 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 1 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 0 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX
-            );
+            __m256 x0 = _mm256_set_ps(  ix_to_x0(ix+7), ix_to_x0(ix+6), ix_to_x0(ix+5), ix_to_x0(ix+4),
+                                        ix_to_x0(ix+3), ix_to_x0(ix+2), ix_to_x0(ix+1), ix_to_x0(ix) );
 
             __m256 x = x0;
             __m256 y = y0;
@@ -64,18 +60,15 @@ void SIMD_m256s_computeMandelbrot(std::vector<sf::Uint8>& pixels) {
                 __m256 xy = _mm256_mul_ps(x, y);
                 __m256 r2 = _mm256_add_ps(x2, y2);
 
-                // Mask for pixels that haven't escaped
                 __m256 mask = _mm256_cmp_ps(r2, _m256s_R2_MAX, _CMP_LT_OQ);
                 int mask_bits = _mm256_movemask_ps(mask);
                 if (mask_bits == 0) { break; } // check if all pixels escaped
 
-                // update values
                 N = _mm256_sub_ps(N, _mm256_and_ps(mask, _mm256_set1_ps(1.0f)));
                 x = _mm256_add_ps(_mm256_sub_ps(x2, y2), x0);
                 y = _mm256_add_ps(_mm256_add_ps(xy, xy), y0);
             }
 
-            // Store results
             float N_results[8];
             _mm256_store_ps(N_results, N);
 
@@ -104,19 +97,10 @@ void SIMD_m256s_computeMandelbrot(std::vector<sf::Uint8>& pixels) {
 
 void SIMD_m256d_computeMandelbrot(std::vector<sf::Uint8>& pixels) {
     for (int iy = 0; iy < HEIGHT; iy++) {
-        // Precompute y0 for the entire row (constant for all ix)
-        float y0_scalar = (iy - HEIGHT / 2.0f) * 3.0f / (HEIGHT * zoom) + offsetY;
-        __m256d y0 = _mm256_set1_pd(y0_scalar);
+        __m256d y0 = _mm256_set1_pd(iy_to_y0(iy));
 
         for (int ix = 0; ix < WIDTH; ix += 4) {
-            // Initialize x0 with 8 consecutive x-coordinates
-            // order is reversed because it fills the vector from high to low memory.
-            __m256d x0 = _mm256_set_pd(
-                (ix + 3 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 2 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 1 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX,
-                (ix + 0 - WIDTH / 2.0f) * 3.0f / (WIDTH * zoom) + offsetX
-            );
+            __m256d x0 = _mm256_set_pd( ix_to_x0(ix+3), ix_to_x0(ix+2), ix_to_x0(ix+1), ix_to_x0(ix) );
 
             __m256d x = x0;
             __m256d y = y0;
@@ -128,18 +112,15 @@ void SIMD_m256d_computeMandelbrot(std::vector<sf::Uint8>& pixels) {
                 __m256d xy = _mm256_mul_pd(x, y);
                 __m256d r2 = _mm256_add_pd(x2, y2);
 
-                // Mask for pixels that haven't escaped
                 __m256d mask  = _mm256_cmp_pd(r2, _m256d_R2_MAX, _CMP_LT_OQ);
                 int mask_bits = _mm256_movemask_pd(mask);
                 if (mask_bits == 0) { break; } // check if all pixels escaped
 
-                // update values
                 N = _mm256_sub_pd(N, _mm256_and_pd(mask, _mm256_set1_pd(1.0f)));
                 x = _mm256_add_pd(_mm256_sub_pd(x2, y2), x0);
                 y = _mm256_add_pd(_mm256_add_pd(xy, xy), y0);
             }
 
-            // Store results
             double N_results[8];
             _mm256_store_pd(N_results, N);
 

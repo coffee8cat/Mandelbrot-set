@@ -16,12 +16,15 @@ void run_tests(size_t n_tests) {
     for (size_t n = 0; n < n_funcs_for_testing; n++) {
         ComputingFuncPtr* func = Funcs_for_test[n];
         func(pixels);
+        uint64_t start = rdtsc();
         for (size_t i = 0; i < n_tests; i++) {
-            uint64_t start = rdtsc();
+            //uint64_t start = rdtsc();
             func(pixels);
-            uint64_t end = rdtsc();
-            temp_res += end - start;
+            //uint64_t end = rdtsc();
+            //temp_res += end - start;
         }
+        uint64_t end = rdtsc();
+        temp_res = end - start;
         test_results[n] = temp_res;
         temp_res = 0;
     }

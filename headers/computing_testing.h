@@ -8,14 +8,7 @@
 #include "computing.h"
 
 inline uint64_t rdtsc() {
-    unsigned int lo, hi;
-    __asm__ __volatile__ ("cpuid\n\t"  // Сериализация
-                          "rdtsc\n\t"
-                          "mov %%edx, %0\n\t"
-                          "mov %%eax, %1\n\t"
-                          : "=r" (hi), "=r" (lo)
-                          :: "%rax", "%rbx", "%rcx", "%rdx");
-    return ((uint64_t)hi << 32) | lo;
+    return __rdtsc();
 }
 
 void run_tests(size_t n_tests);

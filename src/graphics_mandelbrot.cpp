@@ -18,12 +18,12 @@ void launch_Mandelbrot() {
             }
             // Camera movement
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::W) offsetY -= 0.1f / zoom;
-                if (event.key.code == sf::Keyboard::S) offsetY += 0.1f / zoom;
-                if (event.key.code == sf::Keyboard::A) offsetX -= 0.1f / zoom;
-                if (event.key.code == sf::Keyboard::D) offsetX += 0.1f / zoom;
-                if (event.key.code == sf::Keyboard::Q) zoom *= 1.1f;
-                if (event.key.code == sf::Keyboard::E) zoom /= 1.1f;
+                if (event.key.code == sf::Keyboard::W) offsetY -= 0.1 / zoom;
+                if (event.key.code == sf::Keyboard::S) offsetY += 0.1 / zoom;
+                if (event.key.code == sf::Keyboard::A) offsetX -= 0.1 / zoom;
+                if (event.key.code == sf::Keyboard::D) offsetX += 0.1 / zoom;
+                if (event.key.code == sf::Keyboard::E) zoom *= 1.1;
+                if (event.key.code == sf::Keyboard::Q) zoom /= 1.1;
             }
         }
         SIMD_m256s_computeMandelbrot(pixels);
@@ -34,6 +34,6 @@ void launch_Mandelbrot() {
         window.draw(sprite);
         window.display();
 
-        std::cout << "FPS: " << 1.0f / clock.restart().asSeconds() << "\r";
+        printf("FPS: %lf \r", 1.0 / clock.restart().asSeconds());
     }
 }
