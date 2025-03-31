@@ -26,7 +26,7 @@ void launch_Mandelbrot() {
                 if (event.key.code == sf::Keyboard::E) zoom /= 1.1f;
             }
         }
-        SIMD_m256d_computeMandelbrot(pixels);
+        SIMD_m256s_computeMandelbrot(pixels);
 
         texture.update(pixels.data());
 
