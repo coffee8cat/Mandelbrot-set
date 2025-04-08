@@ -7,7 +7,10 @@ OBJECTS = $(wildcard $(OBJ_DIR)/*.o)
 
 HEADERS_DIR = headers
 
-EXECUTABLE = mandelbrot-set
+EXECUTABLE_O0 = mandelbrot-set-O0
+EXECUTABLE_O1 = mandelbrot-set-O1
+EXECUTABLE_O2 = mandelbrot-set-O2
+EXECUTABLE_O3 = mandelbrot-set-O3
 
 all:
 	make compile
@@ -16,7 +19,21 @@ all:
 compile:
 	export MESA_LOADER_DRIVER_OVERRIDE=llvmpipe
 	export LIBGL_ALWAYS_SOFTWARE=1
-	g++ $(SOURCES) -O3 -o $(BUILD_DIR)/$(EXECUTABLE) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
+	g++ $(SOURCES) -O3 -o $(BUILD_DIR)/$(EXECUTABLE_O3) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
 
-run:
-	$(BUILD_DIR)/$(EXECUTABLE) --graph
+compile_On:
+	export MESA_LOADER_DRIVER_OVERRIDE=llvmpipe
+	export LIBGL_ALWAYS_SOFTWARE=1
+	g++ $(SOURCES) -O0 -o $(BUILD_DIR)/$(EXECUTABLE_O0) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
+	g++ $(SOURCES) -O1 -o $(BUILD_DIR)/$(EXECUTABLE_O1) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
+	g++ $(SOURCES) -O2 -o $(BUILD_DIR)/$(EXECUTABLE_O2) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
+	g++ $(SOURCES) -O3 -o $(BUILD_DIR)/$(EXECUTABLE_O3) -I$(HEADERS_DIR) -lsfml-graphics -lsfml-window -lsfml-system -mavx2
+
+run_tests:
+	$(BUILD_DIR)/$(EXECUTABLE_O0) --testing
+	$(BUILD_DIR)/$(EXECUTABLE_O1) --testing
+	$(BUILD_DIR)/$(EXECUTABLE_O2) --testing
+	$(BUILD_DIR)/$(EXECUTABLE_O3) --testing
+
+run_graph:
+	$(BUILD_DIR)/$(EXECUTABLE_O3) --graph
