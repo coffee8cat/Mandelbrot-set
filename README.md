@@ -1,4 +1,14 @@
 # Mandelbrot Set
+- [Mandelbrot Set](#mandelbrot-set)
+    - [What is Mandelbrot-set?](#what-is-mandelbrot-set)
+  - [Task](#task)
+  - [Calculations](#calculations)
+  - [Optimizations](#optimizations)
+    - [acceleration testing results](#acceleration-testing-results)
+  - [Graphical mode](#graphical-mode)
+  - [Test setup](#test-setup)
+  - [Compiling and running](#compiling-and-running)
+  - [Changing parameters of programm](#changing-parameters-of-programm)
 
 This work is focused on implementing two main optimizations - loop unrolling and usage of SIMD instructions - in programm for computing Mandelbrot-set and comparing its perfomance, also testing the effect of optimized versions compiled with -O0, -O1, -O2, -O3 flags.
 
@@ -7,6 +17,7 @@ The Mandelbrot set is the set of points C in the complex plane for which the rec
 |z(n)| < R holds for all natural n.
 
 ## Task
+
  Drawing the Mandelbrot set with graphical output, followed by optimization via SIMD calculations.
 
 ## Calculations
@@ -67,4 +78,49 @@ In the running application, you can navigate the image using the keys <kbd>W</kb
 
 ## Test setup
 
+- **CPU**: AMD Ryzen 5 4600H with Radeon Graphics 3.00 GHz
+- **OS**: Ubuntu 24.04.2 LTS (GNU/Linux 5.15.167.4-microsoft-standard-WSL2 x86_64)
+- **Compiler**: g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
 
+## Compiling and running
+
+For compiling main fastest version
+
+```shell
+make compile
+```
+
+For compiling all version (-O0, ..., -O3)
+
+```shell
+make compile_On
+```
+
+For running main version
+
+```shell
+make run
+```
+
+
+For running tests on all versions
+
+```shell
+make run_tests
+```
+There are two options for running my programm:
+1) Running graphical application
+
+```shell
+./mandelbrot-set --graph
+```
+
+2) Running tests of computing functions with number of tests from --testing option argument (100 as a default)
+
+```shell
+./mandelbrot-set --testing=100
+```
+
+## Changing parameters of programm
+
+If you want to change parameters of graphical application, view  `/src/params.cpp`. For changing parameters of testing, view `/src/computing_testing.cpp`: in the beginning of this file there are *Funcs_for_test* - array of computing functions to test, *benchmark_index* - index of funtion in *Funcs_for_test* all other functions perfomance will be compared with, *dump_file_name* - name for testing results (will be stored in `/dump` directory).
