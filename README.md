@@ -1,5 +1,8 @@
 # Mandelbrot Set
 
+This work is focused on implementing two main optimizations - loop unrolling and usage of SIMD instructions - in programm for computing Mandelbrot-set and comparing its perfomance, also testing the effect of optimized versions compiled with -O0, -O1, -O2, -O3 flags.
+
+### What is Mandelbrot-set?
 The Mandelbrot set is the set of points C in the complex plane for which the recurrence relation z(n+1) = z(n)^2 + C at z(0) = 0 defines a bounded sequence. In other words, it is the set of C for which there exists a real R such that the inequality
 |z(n)| < R holds for all natural n.
 
@@ -12,7 +15,7 @@ For each pixel in the displayed window, a sequence of points on the complex plan
 
 ## Optimizations
 
-To determine the efficiency of the optimization, testing was carried out using the rdtsc intrinsic to count the number of processor cycles for calculations for a given number (100) of frames. Two variants of calculations via SIMD were tested: for float and double on 256-bit registers. The results are represented in the tables and diagrams:
+To determine the efficiency of the optimization, testing was carried out using the rdtsc intrinsic to count the number of processor cycles for calculations for a given number (100) of frames. While testing, graphics were disabled, only time of calculations was measured. Two variants of calculations via SIMD were tested: for float and double on 256-bit ymm registers. The results are represented in the tables and diagrams:
 
 ### acceleration testing results
 
@@ -34,8 +37,20 @@ Flages | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double |
 
 ![picture](readme_pic//optimization_comparison_loop_unroll.png)
 
+On the following diagrams for version with usage of SIMD instructions we notice significant increase in perfomance after just O1:
 ![picture](readme_pic//optimization_comparison_SIMD256double.png)
 ![picture](readme_pic//optimization_comparison_SIMD256float.png)
+This effect can be explained if we look at assemble code after compiling with O0 and O2. Lets look at the following fragment of programm and what assembly code will produce [godbolt](https://godbolt.org/).
+Fragment of programm:
+![picture](readme_pic//fragment_for.png)
+
+In version with O0, it is easy to see how many unnecessary operations of memory usage left in code (for body ends on line 223):
+![picture](readme_pic//SIMD_for_O0.png)
+
+While in O2 ymm registers are used effectively:
+![picture](readme_pic//SIMD_for_O2.png)
+
+Therefore there is not much sense in using SIMD instructions without compiler optimizations.
 
 Final comparison of optimizations compiled with O3:
 
@@ -49,3 +64,7 @@ In the running application, you can navigate the image using the keys <kbd>W</kb
 
 ![picture](readme_pic//Mandelbrot-set.png)
 ![picture](readme_pic//Mandelbrot-set-zoomed.png)
+
+## Test setup
+
+
