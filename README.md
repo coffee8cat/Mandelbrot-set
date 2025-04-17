@@ -73,7 +73,6 @@ Flages | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double |
 ![picture](readme_pic//optimization_comparison_SIMD256float.png)
 Этот эффект станет понятен, если обратиться к  [godbolt](https://godbolt.org/z/rhPbzj8c4).
 Фрагмент программы:
-![picture](readme_pic//fragment_for.png)
 
 При компиляции с -O0 происходит множество промежуточных сохранений регистров и чтений обратно в регистры (тело цикла for заканчивается на строке 223):
 ```asm
