@@ -1,36 +1,55 @@
 # Mandelbrot Set
 - [Mandelbrot Set](#mandelbrot-set)
-    - [What is Mandelbrot-set?](#what-is-mandelbrot-set)
-  - [Task](#task)
-  - [Calculations](#calculations)
-  - [Optimizations](#optimizations)
-    - [acceleration testing results](#acceleration-testing-results)
-  - [Graphical mode](#graphical-mode)
-  - [Test setup](#test-setup)
-  - [Compiling and running](#compiling-and-running)
-  - [Changing parameters of programm](#changing-parameters-of-programm)
+  - [Настройки системы](#настройки-системы)
+  - [Изменение параметров программы](#изменение-параметров-программы)
+    - [Что такое множество Мандельброта?](#что-такое-множество-мандельброта)
+  - [Задание](#задание)
+  - [Вычисления](#вычисления)
+  - [Оптимизации](#оптимизации)
+    - [результаты оптимизаций](#результаты-оптимизаций)
+  - [Графика](#графика)
+  - [Сборка](#сборка)
 
-This work is focused on implementing two main optimizations - loop unrolling and usage of SIMD instructions - in programm for computing Mandelbrot-set and comparing its perfomance, also testing the effect of optimized versions compiled with -O0, -O1, -O2, -O3 flags.
+В данной работе использовались инструкции SIMD для оптимизации вычисления множества Мандельброта и сравнивалась производительность версии с SSE по сравнению с базовой версией без оптимизаций при компиляции с флагами -O0, -O1, -O2, -O3.
 
-### What is Mandelbrot-set?
-The Mandelbrot set is the set of points C in the complex plane for which the recurrence relation z(n+1) = z(n)^2 + C at z(0) = 0 defines a bounded sequence. In other words, it is the set of C for which there exists a real R such that the inequality
-|z(n)| < R holds for all natural n.
+## Настройки системы
 
-## Task
+- **CPU**: AMD Ryzen 5 4600H with Radeon Graphics 3.00 GHz
+- **OS**: Ubuntu 24.04.2 LTS (GNU/Linux 5.15.167.4-microsoft-standard-WSL2 x86_64)
+- **Compiler**: g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
 
- Drawing the Mandelbrot set with graphical output, followed by optimization via SIMD calculations.
 
-## Calculations
+## Изменение параметров программы
 
-For each pixel in the displayed window, a sequence of points on the complex plane is calculated, starting from the point C corresponding to the pixel, using the recursive formula z(n+1) = z(n)^2 + C, until the iteration number N exceeds MAX_ITER = 255 or z(N) leaves the circle with the center at the origin of fixed radius (10). The resulting number N is converted to RGBA in a certain way to display the Mandelbrot set, RGBA are written to an array for subsequent rendering.
+Изменение параметров графического приложения: [params.cpp](src/params.cpp)
 
-## Optimizations
+Изменение параметров тестов: [computing_testing.cpp](src/computing_testing.cpp)
 
-To determine the efficiency of the optimization, testing was carried out using the rdtsc intrinsic to count the number of processor cycles for calculations for a given number (100) of frames. While testing, graphics were disabled, only time of calculations was measured. Two variants of calculations via SIMD were tested: for float and double on 256-bit ymm registers. The results are represented in the tables and diagrams:
+### Что такое множество Мандельброта?
+Множество Мандельброта - множество точек {C} на комплексной плоскости, для которых рекуррентное соотношение z(n+1) = z(n)^2 + C задает ограниченную последовательность при z(0) = 0.
 
-### acceleration testing results
+## Задание
 
-Accelaration compared with basic version (No Optimization) compiled with O0:
+Расчет и отрисовка точек множества Мандельброта.
+
+## Вычисления
+
+Для каждого пикселя на экране расчитывалась последовательность точек для соответсвующей ему точки C на комплексной плоскости согласно рекуррентной формуле z(n+1) = z(n)^2 + C. Если z(n) покидает окружность радиусом `R2_MAX = 10` или n превышает `MAX_ITER = 255`, вычисления прекращаются. Первый случай означает, что точка не принадлежит множеству Мандельброта, второй - наоборот. После этого по номеру N, на котором прекратился расчет, формируется цвет пикселя:
+
+R = 50 + 70 * (1 - N / MAX_ITER) * ((N + 1) / 2)
+G = 25 + 75 * (N % 2)
+B = 170
+
+[Открыть скрипт](src/computing.cpp)
+
+
+## Оптимизации
+
+Чтобы определить эффективность каждой из оптимизаций, измерялось время расчета 100 кадров с помощью `rdtsc`. Замеры проведены для SIMD на 256-битовых регистрах в двух вариантах: float32 double64, а также для варианта с массивами по 4 элемента (в таблицах обозначено как Loop Unrolling x4)
+
+### результаты оптимизаций
+
+Повышение производительности по сравнению с базовой версией, скомпилированной с -O0:
 Flages | No Optimization | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double |
 |-----|-----|-----|-----|-----|
 | O0 | 1.0   | 0.884 | 2.911  | 1.657 |
@@ -38,7 +57,7 @@ Flages | No Optimization | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double 
 | O2 |2.566  | 3.333 | 14.551 | 8.276 |
 | O3 |2.567  | 5.099 | 14.344 | 8.353 |
 
-Accelaration compared with basic version compiled with the matching flags for each column:
+Повышение производительности по сравнению с базовой версией, скомпилированной с соответствующим флагом в каждой строке:
 Flages | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double |
 |-----|-----|-----|-----|
 | O0 | 0.884| 2.911 | 1.657 |
@@ -48,79 +67,105 @@ Flages | Loop Unrolling x4 | SIMD 256 float | SIMD 256 double |
 
 ![picture](readme_pic//optimization_comparison_loop_unroll.png)
 
-On the following diagrams for version with usage of SIMD instructions we notice significant increase in perfomance after just O1:
+На следующих диаграммах заметно значительное повышение производительности SIMD инструкций при -O1 и больших оптимизациях:
+
 ![picture](readme_pic//optimization_comparison_SIMD256double.png)
 ![picture](readme_pic//optimization_comparison_SIMD256float.png)
-This effect can be explained if we look at assemble code after compiling with O0 and O2. Lets look at the following fragment of programm and what assembly code will produce [godbolt](https://godbolt.org/).
-Fragment of programm:
+Этот эффект станет понятен, если обратиться к  [godbolt](https://godbolt.org/z/rhPbzj8c4).
+Фрагмент программы:
 ![picture](readme_pic//fragment_for.png)
 
-In version with O0, it is easy to see how many unnecessary operations of memory usage left in code (for body ends on line 223):
-![picture](readme_pic//SIMD_for_O0.png)
+При компиляции с -O0 происходит множество промежуточных сохранений регистров и чтений обратно в регистры (тело цикла for заканчивается на строке 223):
+```asm
+147     .L28:
+148     vmovaps ymm0, YMMWORD PTR [rbp-112]
+149     vmovaps YMMWORD PTR [rbp-720], ymm0
+150     vmovaps ymm0, YMMWORD PTR [rbp-112]
+151     vmovaps YMMWORD PTR [rbp-752], ymm0
+...
+228     add     QWORD PTR [rbp-184], 1
+229 .L13:
+230     cmp     QWORD PTR [rbp-184], 254
+231     jbe     .L28
+232     jmp     .L20
+233 .L33:
+234     nop
+235 .L20:
+```
 
-While in O2 ymm registers are used effectively:
-![picture](readme_pic//SIMD_for_O2.png)
+При этом при компиляции с -O2 регистры используюся эффективно, без излишних сохранений:
 
-Therefore there is not much sense in using SIMD instructions without compiler optimizations.
+```asm
+.L16:
+        vsubps  ymm1, ymm1, ymm5
+        vaddps  ymm2, ymm2, ymm2
+        vandps  ymm0, ymm0, YMMWORD PTR .LC7[rip]
+        vsubps  ymm7, ymm7, ymm0
+        vaddps  ymm2, ymm2, ymm3
+        vaddps  ymm0, ymm1, ymm6
+        sub     rax, 1
+        je      .L2
+.L3:
+        vmulps  ymm5, ymm2, ymm2
+        vmulps  ymm1, ymm0, ymm0
+        vmulps  ymm2, ymm0, ymm2
+        vaddps  ymm0, ymm1, ymm5
+        vcmpps  ymm0, ymm0, ymm4, 17
+        vmovmskps       esi, ymm0
+        test    esi, esi
+        jne     .L16
+.L2:
+```
 
-Final comparison of optimizations compiled with O3:
+
+Таким образом нет смысла использовать SIMD инструкции при компиляции с -O0.
+
+Финальное сравненние оптимизаций и базовой версии, все скомпилированы с -O3:
 
 ![picture](readme_pic//optimization_comparison_O0.png)
 ![picture](readme_pic//optimization_comparison_O3.png)
-The greatest performance gain is observed in the version with float (32 bits) - at each iteration of the calculation cycle, calculations are performed for 8 pixels at once, while for double (64 bits) - 4, without optimization - only one.
 
-## Graphical mode
+Наибольший прирост производительности наблюдается в версии SIMD с float32 - здесь на каждой итерации цикла расчитываюся параметры сразу для 8 пикселей, в то время как в версии SIMD с double64 - только для 4.
 
-In the running application, you can navigate the image using the keys <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>, and also zoom in and out using <kbd>E</kbd> and <kbd>Q</kbd>.
+## Графика
+
+В запущенном приложении можно передвигаться по изображению с помощью <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>, а также приближать его или удалять, используя <kbd>E</kbd> and <kbd>Q</kbd>.
 
 ![picture](readme_pic//Mandelbrot-set.png)
 ![picture](readme_pic//Mandelbrot-set-zoomed.png)
 
-## Test setup
+## Сборка
 
-- **CPU**: AMD Ryzen 5 4600H with Radeon Graphics 3.00 GHz
-- **OS**: Ubuntu 24.04.2 LTS (GNU/Linux 5.15.167.4-microsoft-standard-WSL2 x86_64)
-- **Compiler**: g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0
-
-## Compiling and running
-
-For compiling main fastest version
+Для компиляции основной - наиболее производительной версии:
 
 ```shell
 make compile
 ```
-
-For compiling all version (-O0, ..., -O3)
+Для компиляции всех версий (с -O0, ..., -O3):
 
 ```shell
 make compile_On
 ```
-
-For running main version
+Запуск основной версии:
 
 ```shell
 make run
 ```
 
-
-For running tests on all versions
+Тестирование всех версий:
 
 ```shell
 make run_tests
 ```
-There are two options for running my programm:
-1) Running graphical application
+Программу можно запускать с двумя опциями:
+1) Графический режим
 
 ```shell
 ./mandelbrot-set --graph
 ```
 
-2) Running tests of computing functions with number of tests from --testing option argument (100 as a default)
+1) Тестирование конкретной версии: --testing={число тестов - 100 по умолчанию}
 
 ```shell
 ./mandelbrot-set --testing=100
 ```
-
-## Changing parameters of programm
-
-If you want to change parameters of graphical application, view  `/src/params.cpp`. For changing parameters of testing, view `/src/computing_testing.cpp`: in the beginning of this file there are *Funcs_for_test* - array of computing functions to test, *benchmark_index* - index of funtion in *Funcs_for_test* all other functions perfomance will be compared with, *dump_file_name* - name for testing results (will be stored in `/dump` directory).
